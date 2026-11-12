@@ -7,6 +7,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Wajib ditambahkan agar Express bisa membaca protokol (http/https) dengan benar di balik proxy Railway
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -109,15 +112,20 @@ app.post('/api/shorten', authenticateToken, (req, res) => {
       }
       return res.status(500).json({ error: err.message });
     }
-    res.json({ shortUrl: `192.168.100.210/${shortCode}` });
+    
+    // OTOMATISASI URL: Mendeteksi URL Railway/Frontend secara dinamis
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    res.json({ shortUrl: `${baseUrl}/${shortCode}` });
   });
 });
 
 // 2. Ambil Riwayat Link (Untuk Home)
 app.get('/api/links', authenticateToken, (req, res) => {
   const userId = req.user.id;
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+
   const query = `
-    SELECT id, original_url AS originalUrl, CONCAT('https://snip-iy-app-production.up.railway.app/', short_code) AS shortUrl, 
+    SELECT id, original_url AS originalUrl, CONCAT('${baseUrl}/', short_code) AS shortUrl, 
            clicks, DATE_FORMAT(created_at, '%d/%m/%Y') AS createdAt 
     FROM urls WHERE user_id = ? ORDER BY created_at DESC LIMIT 10
   `;
@@ -130,8 +138,10 @@ app.get('/api/links', authenticateToken, (req, res) => {
 // 3. Ambil SEMUA Link milik User (Untuk Dashboard)
 app.get('/api/my-links', authenticateToken, (req, res) => {
   const userId = req.user.id;
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+
   const query = `
-    SELECT urls.id, urls.original_url as originalUrl, CONCAT('https://snip-iy-app-production.up.railway.app/', urls.short_code) as shortUrl, 
+    SELECT urls.id, urls.original_url as originalUrl, CONCAT('${baseUrl}/', urls.short_code) as shortUrl, 
            urls.clicks, DATE_FORMAT(urls.created_at, "%d/%m/%Y") as createdAt 
     FROM urls 
     WHERE urls.user_id = ?
@@ -143,7 +153,7 @@ app.get('/api/my-links', authenticateToken, (req, res) => {
   });
 });
 
-// ================= STATISTIK DASHBOARD (TERBARU) =================
+// ================= STATISTIK DASHBOARD =================
 app.get('/api/stats', authenticateToken, (req, res) => {
   const userId = req.user.id;
 
@@ -168,7 +178,7 @@ app.get('/api/stats', authenticateToken, (req, res) => {
             if (err) return res.status(500).json({ error: err.message });
             const yearlyLinks = yearlyResult[0].yearly;
 
-            // 4. Data Grafik per Bulan (Menggunakan format 'Jan', 'Feb', dst)
+            // 4. Data Grafik per Bulan
             db.query(
               `SELECT DATE_FORMAT(created_at, '%b') as name, COUNT(*) as total 
                FROM urls WHERE user_id = ? 
@@ -193,7 +203,7 @@ app.get('/api/stats', authenticateToken, (req, res) => {
   });
 });
 
-// ================= REDIRECT & TAMBAH KLIK (HARUS PALING BAWAH) =================
+// ================= REDIRECT & TAMBAH KLIK =================
 app.get('/:code', (req, res) => {
   const { code } = req.params;
   const query = 'SELECT original_url FROM urls WHERE short_code = ?';
@@ -216,4 +226,4 @@ app.get('/:code', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server berjalan di https://snip-iy-app-production.up.railway.app`));
+app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
