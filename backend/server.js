@@ -36,6 +36,18 @@ app.use(
 
 app.use(express.json());
 
+// ==========================================
+// PENCATAT REQUEST (CCTV DEBUGGING)
+// ==========================================
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} | origin: ${req.headers.origin || '-'}`);
+  next();
+});
+
+// CEK KESEHATAN SERVER (Ditaruh di atas /:code agar tidak tertangkap route redirect)
+app.get('/', (req, res) => res.send('Snip.ly API hidup'));
+// ==========================================
+
 // ================= MIDDLEWARE (SATPAM) =================
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
