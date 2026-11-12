@@ -10,8 +10,16 @@ const app = express();
 // Wajib ditambahkan agar Express bisa membaca protokol (http/https) dengan benar di balik proxy Railway
 app.set('trust proxy', 1);
 
-// Middleware
-app.use(cors());
+// --- KONFIGURASI CORS EKSPLISIT ---
+const corsOptions = {
+  origin: '*', // Mengizinkan semua domain (termasuk Frontend Vercel/Railway Anda)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+app.use(cors(corsOptions));
+// ----------------------------------
+
 app.use(express.json());
 
 // ================= MIDDLEWARE (SATPAM) =================
