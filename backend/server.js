@@ -7,22 +7,31 @@ require('dotenv').config();
 
 const app = express();
 
-// Wajib ditambahkan agar Express bisa membaca protokol (http/https) dengan benar di balik proxy Railway
+// Wajib agar Express bisa membaca protokol (http/https) dengan benar di balik proxy Railway
 app.set('trust proxy', 1);
 
-// --- KONFIGURASI CORS YANG SUDAH DIPERBAIKI ---
-const corsOptions = {
-  // Daftarkan URL Frontend Railway kamu, dan localhost untuk testing lokal
-  origin: [
-    'https://truthful-joy-production-94784455.up.railway.app', 
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Sekarang aman karena origin-nya spesifik, bukan '*'
-};
-app.use(cors(corsOptions));
+// --- KONFIGURASI CORS DINAMIS (SANGAT AMAN) ---
+const allowedOrigins = [
+  'https://truthful-joy-production-94784455.up.railway.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.FRONTEND_URL, // Opsional, bisa diisi di Railway Variables
+]
+  .filter(Boolean)
+  .map((o) => o.replace(/\/$/, '')); // Membuang "/" di akhir URL jika ada
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Jika origin kosong (misal dari Postman/curl) atau ada di daftar, izinkan
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error('Origin tidak diizinkan: ' + origin));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Wajib jika Frontend mengirim cookie/credentials
+  })
+);
 // ----------------------------------------------
 
 app.use(express.json());
@@ -126,7 +135,7 @@ app.post('/api/shorten', authenticateToken, (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     
-    // OTOMATISASI URL: Mendeteksi URL Railway/Frontend secara dinamis
+    // OTOMATISASI URL: Mendeteksi URL Railway secara dinamis
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     res.json({ shortUrl: `${baseUrl}/${shortCode}` });
   });
