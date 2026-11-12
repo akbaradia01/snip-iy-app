@@ -32,7 +32,7 @@ export default function Dashboard() {
 
     const headers = { 'Authorization': `Bearer ${token}` };
 
-    fetch('http://localhost:5000/api/stats', { headers })
+    fetch('https://snip-iy-app-production.up.railway.app/api/stats', { headers })
       .then(res => res.json())
       .then(data => {
         setStats({
@@ -46,7 +46,7 @@ export default function Dashboard() {
       })
       .catch(err => console.log('Gagal memuat statistik:', err));
 
-    fetch('http://localhost:5000/api/my-links', { headers })
+    fetch('https://snip-iy-app-production.up.railway.app/api/my-links', { headers })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setMyLinks(data);

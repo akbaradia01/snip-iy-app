@@ -117,7 +117,7 @@ app.post('/api/shorten', authenticateToken, (req, res) => {
 app.get('/api/links', authenticateToken, (req, res) => {
   const userId = req.user.id;
   const query = `
-    SELECT id, original_url AS originalUrl, CONCAT('http://localhost:5000/', short_code) AS shortUrl, 
+    SELECT id, original_url AS originalUrl, CONCAT('https://snip-iy-app-production.up.railway.app/', short_code) AS shortUrl, 
            clicks, DATE_FORMAT(created_at, '%d/%m/%Y') AS createdAt 
     FROM urls WHERE user_id = ? ORDER BY created_at DESC LIMIT 10
   `;
@@ -131,7 +131,7 @@ app.get('/api/links', authenticateToken, (req, res) => {
 app.get('/api/my-links', authenticateToken, (req, res) => {
   const userId = req.user.id;
   const query = `
-    SELECT urls.id, urls.original_url as originalUrl, CONCAT('http://localhost:5000/', urls.short_code) as shortUrl, 
+    SELECT urls.id, urls.original_url as originalUrl, CONCAT('https://snip-iy-app-production.up.railway.app/', urls.short_code) as shortUrl, 
            urls.clicks, DATE_FORMAT(urls.created_at, "%d/%m/%Y") as createdAt 
     FROM urls 
     WHERE urls.user_id = ?
@@ -216,4 +216,4 @@ app.get('/:code', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server berjalan di http://localhost:5000`));
+app.listen(PORT, () => console.log(`Server berjalan di https://snip-iy-app-production.up.railway.app`));

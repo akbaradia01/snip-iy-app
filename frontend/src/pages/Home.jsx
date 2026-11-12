@@ -30,7 +30,7 @@ export default function Home() {
   useEffect(() => {
     if (!token) return;
     
-    fetch('http://localhost:5000/api/links', {
+    fetch('https://snip-iy-app-production.up.railway.app/api/links', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then((res) => res.json())
@@ -50,7 +50,7 @@ export default function Home() {
     setCopied(false);
 
     try {
-      const response = await fetch('http://localhost:5000/api/shorten', {
+      const response = await fetch('https://snip-iy-app-production.up.railway.app/api/shorten', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
