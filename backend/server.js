@@ -10,15 +10,20 @@ const app = express();
 // Wajib ditambahkan agar Express bisa membaca protokol (http/https) dengan benar di balik proxy Railway
 app.set('trust proxy', 1);
 
-// --- KONFIGURASI CORS EKSPLISIT ---
+// --- KONFIGURASI CORS YANG SUDAH DIPERBAIKI ---
 const corsOptions = {
-  origin: '*', // Mengizinkan semua domain (termasuk Frontend Vercel/Railway Anda)
+  // Daftarkan URL Frontend Railway kamu, dan localhost untuk testing lokal
+  origin: [
+    'https://truthful-joy-production-94784455.up.railway.app', 
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true // Sekarang aman karena origin-nya spesifik, bukan '*'
 };
 app.use(cors(corsOptions));
-// ----------------------------------
+// ----------------------------------------------
 
 app.use(express.json());
 
